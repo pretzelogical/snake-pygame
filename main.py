@@ -4,6 +4,8 @@ import pygame
 SCREEN_SIZE = 1024
 # Pixel size of grid squares
 GRID_SIZE = 32
+# Colors
+COL_BLACK = pygame.Color("black")
 
 
 def createGameField():
@@ -14,16 +16,21 @@ def createGameField():
 
 def drawGameGrid(screen):
     for i in range(0, SCREEN_SIZE, GRID_SIZE):
-        pygame.draw.line(screen, (0, 0, 0), (i, 0), (i, SCREEN_SIZE))
-        pygame.draw.line(screen, (0, 0, 0), (0, i), (SCREEN_SIZE, i))
+        pygame.draw.line(screen, COL_BLACK, (i, 0), (i, SCREEN_SIZE))
+        pygame.draw.line(screen, COL_BLACK, (0, i), (SCREEN_SIZE, i))
 
+def drawBlocks(screen, blocks):
+    for block in blocks:
+        pygame.draw.rect(screen, COL_BLACK, pygame.Rect(block.x, block.y, GRID_SIZE, GRID_SIZE))
 
 def main():
     pygame.init()
     screen = pygame.display.set_mode((SCREEN_SIZE, SCREEN_SIZE))
     pygame.display.set_caption("Snake")
-    # gameField = createGameField(32)
+    gameField = createGameField()
     clock = pygame.time.Clock()
+    block = pygame.Rect(64, 0, GRID_SIZE, GRID_SIZE)
+    blocks = [block]
     running = True
 
     while running:
@@ -34,6 +41,7 @@ def main():
 
         screen.fill((255, 255, 255))
         drawGameGrid(screen)
+        drawBlocks(screen, blocks)
         pygame.display.flip()
 
         clock.tick(60)
