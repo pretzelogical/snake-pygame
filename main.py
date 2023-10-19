@@ -24,11 +24,17 @@ class Snake(pygame.Rect):
         self.head = kwargs.get("head", False)
         self.parent = kwargs.get("parent", None)
         self.child = kwargs.get("child", None)
+        self.old_pos = self.pos.copy()
         if not self.head and not self.parent:
             raise ValueError("Snake must have parent if not head")
 
     def move(self, heading, gameField):
         """ Processes movement """
+        self.old_pos = self.pos
+        if not self.head:
+            self.pos = self.parent.pos + Vector2(0, 1)
+            return
+        """ We only process keys if we are the head  """
         headingMap = {
             pygame.K_LEFT: Vector2(-1, 0),
             pygame.K_RIGHT: Vector2(1, 0),
@@ -38,12 +44,11 @@ class Snake(pygame.Rect):
         heading = self.pickHeading(heading)
         if heading in headingMap:
             self.pos += headingMap[heading]
-        self.x = self.pos.x * GRID_SIZE
-        self.y = self.pos.y * GRID_SIZE
         self.lastHeading = heading
         if TESTING:
             print(pygame.key.name(heading))
-            print(self.pos)
+            print(f"Pos: {self.pos}")
+        return
 
     def pickHeading(self, heading):
         """
@@ -148,7 +153,8 @@ def main():
                 heading = event.key
 
         # Game logic
-        snake[0].move(heading, gameField)
+        for s in snake:
+            s.move(heading, gameField)
 
         # Drawing logic
         screen.fill((255, 255, 255))
@@ -156,7 +162,8 @@ def main():
         drawBlocks(screen, blocks)
         if TESTING:
             frameCount += 1
-            print(snake[0])
+            print(snake[1].parent.old_pos)
+            print(snake[1].old_pos)
             testDraw(screen, frameCount)
 
         pygame.display.flip()
