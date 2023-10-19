@@ -115,7 +115,6 @@ def initSnakeBlocks(num_children):
         newPart = Snake(GRID_SIZE, GRID_SIZE,
                         GRID_SIZE, GRID_SIZE, parent=parent)
         newPart.pos = offset
-        print(newPart.pos)
         snake.append(newPart)
         parent.child = snake[i]
         offset += Vector2(0, 1)
@@ -131,8 +130,6 @@ def main():
     gameField = createGameField()
     clock = pygame.time.Clock()
     snake = initSnakeBlocks(3)
-    for s in snake:
-        print(s.pos)
     food = Food(0, 0, GRID_SIZE, GRID_SIZE)
     blocks = snake + [food]
     if TESTING:
