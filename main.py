@@ -22,6 +22,11 @@ class Snake(pygame.Rect):
         self.pos = Vector2(16, 16)
         self.x = self.pos.x * GRID_SIZE
         self.y = self.pos.y * GRID_SIZE
+        self.lastHeading = pygame.K_UP
+        self.head = kwargs.get("head", False)
+        self.parent = kwargs.get("parent", None)
+        if not self.head and not self.parent:
+            raise ValueError("Snake must have parent if not head")
 
     def move(self, heading, gameField):
         """ Processes movement """
@@ -31,17 +36,30 @@ class Snake(pygame.Rect):
             pygame.K_UP: Vector2(0, -1),
             pygame.K_DOWN: Vector2(0, 1)
                    }
+        heading = self.pickHeading(heading)
         if heading in headingMap:
             self.pos += headingMap[heading]
         self.x = self.pos.x * GRID_SIZE
         self.y = self.pos.y * GRID_SIZE
+        self.lastHeading = heading
         if TESTING:
             print(pygame.key.name(heading))
             print(self.pos)
 
-    def perimCheck(self, gameField):
-        """ Checks if snake is colliding with another block"""
-        raise NotImplementedError("perimCheck not implemented")
+    def pickHeading(self, heading):
+        """
+        Picks the correct heading based on the
+        last heading of the snake
+        """
+        if heading == pygame.K_LEFT and self.lastHeading == pygame.K_RIGHT:
+            return pygame.K_RIGHT
+        elif heading == pygame.K_RIGHT and self.lastHeading == pygame.K_LEFT:
+            return pygame.K_LEFT
+        elif heading == pygame.K_UP and self.lastHeading == pygame.K_DOWN:
+            return pygame.K_DOWN
+        elif heading == pygame.K_DOWN and self.lastHeading == pygame.K_UP:
+            return pygame.K_UP
+        return heading
 
 
 class Food(pygame.Rect):
@@ -85,7 +103,7 @@ def main():
         frameCount = 0
     gameField = createGameField()
     clock = pygame.time.Clock()
-    snake = Snake(GRID_SIZE, GRID_SIZE, GRID_SIZE, GRID_SIZE)
+    snake = Snake(GRID_SIZE, GRID_SIZE, GRID_SIZE, GRID_SIZE, head=True)
     food = Food(0, 0, GRID_SIZE, GRID_SIZE)
     blocks = [snake, food]
     running = True
