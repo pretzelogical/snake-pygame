@@ -20,11 +20,10 @@ class Snake(pygame.Rect):
         super().__init__(*args, **kwargs)
         self.color = COL_BLACK
         self.pos = Vector2(16, 16)
-        self.x = self.pos.x * GRID_SIZE
-        self.y = self.pos.y * GRID_SIZE
         self.lastHeading = pygame.K_UP
         self.head = kwargs.get("head", False)
         self.parent = kwargs.get("parent", None)
+        self.child = kwargs.get("child", None)
         if not self.head and not self.parent:
             raise ValueError("Snake must have parent if not head")
 
@@ -61,6 +60,17 @@ class Snake(pygame.Rect):
             return pygame.K_UP
         return heading
 
+    @property
+    def pos(self):
+        return self.__pos
+
+    @pos.setter
+    def pos(self, val):
+        """ update screen position based on grid position """
+        self.__pos = val
+        self.x = self.__pos.x * GRID_SIZE
+        self.y = self.__pos.y * GRID_SIZE
+
 
 class Food(pygame.Rect):
     def __init__(self, *args, **kwargs):
@@ -95,6 +105,23 @@ def testDraw(screen, frames):
     screen.blit(frameText, frameTextRect)
 
 
+def initSnakeBlocks(num_children):
+    snake = []
+    snakeHead = Snake(GRID_SIZE, GRID_SIZE, GRID_SIZE, GRID_SIZE, head=True)
+    snake.append(snakeHead)
+    offset = Vector2(16, 16)
+    for i in range(1, num_children + 1):
+        parent = snake[i - 1]
+        newPart = Snake(GRID_SIZE, GRID_SIZE,
+                        GRID_SIZE, GRID_SIZE, parent=parent)
+        newPart.pos = offset
+        print(newPart.pos)
+        snake.append(newPart)
+        parent.child = snake[i]
+        offset += Vector2(0, 1)
+    return snake
+
+
 def main():
     screen = pygame.display.set_mode((SCREEN_SIZE, SCREEN_SIZE))
     pygame.display.set_caption("Snake")
@@ -103,9 +130,13 @@ def main():
         frameCount = 0
     gameField = createGameField()
     clock = pygame.time.Clock()
-    snake = Snake(GRID_SIZE, GRID_SIZE, GRID_SIZE, GRID_SIZE, head=True)
+    snake = initSnakeBlocks(3)
+    for s in snake:
+        print(s.pos)
     food = Food(0, 0, GRID_SIZE, GRID_SIZE)
-    blocks = [snake, food]
+    blocks = snake + [food]
+    if TESTING:
+        print(blocks)
     running = True
     heading = pygame.K_UP
 
@@ -120,7 +151,7 @@ def main():
                 heading = event.key
 
         # Game logic
-        snake.move(heading, gameField)
+        snake[0].move(heading, gameField)
 
         # Drawing logic
         screen.fill((255, 255, 255))
@@ -128,6 +159,7 @@ def main():
         drawBlocks(screen, blocks)
         if TESTING:
             frameCount += 1
+            print(snake[0])
             testDraw(screen, frameCount)
 
         pygame.display.flip()
