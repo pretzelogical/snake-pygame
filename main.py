@@ -26,20 +26,6 @@ class Snake(pygame.Rect):
             self.pos = Vector2(16, 16)
         self.lastHeading = pygame.K_UP
 
-    # def move(self, heading, fullSnake):
-    #     """ Processes movement """
-    #     self.newPart = Snake(GRID_SIZE, GRID_SIZE, GRID_SIZE, GRID_SIZE)
-    #     headingMap = {
-    #         pygame.K_LEFT: Vector2(-1, 0),
-    #         pygame.K_RIGHT: Vector2(1, 0),
-    #         pygame.K_UP: Vector2(0, -1),
-    #         pygame.K_DOWN: Vector2(0, 1)
-    #                }
-    #     heading = self.pickHeading(heading)
-    #     if heading in headingMap:
-    #         self.pos += headingMap[heading]
-    #     self.lastHeading = heading
-
     @staticmethod
     def move(heading, fullSnake):
         """ Processes movement """
