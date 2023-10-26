@@ -2,6 +2,7 @@
 import pygame
 from pygame.math import Vector2
 from sys import argv
+from collections import deque
 pygame.init()
 
 SCREEN_SIZE = 1024
@@ -19,47 +20,62 @@ class Snake(pygame.Rect):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.color = COL_BLACK
-        self.pos = Vector2(16, 16)
+        if "pos" in kwargs:
+            self.pos = kwargs["pos"]
+        else:
+            self.pos = Vector2(16, 16)
         self.lastHeading = pygame.K_UP
-        self.head = kwargs.get("head", False)
-        self.parent = kwargs.get("parent", None)
-        self.child = kwargs.get("child", None)
-        self.old_pos = self.pos.copy()
-        if not self.head and not self.parent:
-            raise ValueError("Snake must have parent if not head")
 
-    def move(self, heading, gameField):
+    # def move(self, heading, fullSnake):
+    #     """ Processes movement """
+    #     self.newPart = Snake(GRID_SIZE, GRID_SIZE, GRID_SIZE, GRID_SIZE)
+    #     headingMap = {
+    #         pygame.K_LEFT: Vector2(-1, 0),
+    #         pygame.K_RIGHT: Vector2(1, 0),
+    #         pygame.K_UP: Vector2(0, -1),
+    #         pygame.K_DOWN: Vector2(0, 1)
+    #                }
+    #     heading = self.pickHeading(heading)
+    #     if heading in headingMap:
+    #         self.pos += headingMap[heading]
+    #     self.lastHeading = heading
+
+    @staticmethod
+    def move(heading, fullSnake):
         """ Processes movement """
-        if not self.head:
-            self.update()
-            return
         headingMap = {
             pygame.K_LEFT: Vector2(-1, 0),
             pygame.K_RIGHT: Vector2(1, 0),
             pygame.K_UP: Vector2(0, -1),
             pygame.K_DOWN: Vector2(0, 1)
-                   }
-        heading = self.pickHeading(heading)
+                       }
+        heading = Snake.pickHeading(fullSnake[0], heading)
         if heading in headingMap:
-            self.pos += headingMap[heading]
-        self.lastHeading = heading
+            fullSnake.appendleft(Snake(GRID_SIZE, GRID_SIZE, GRID_SIZE,
+                                       GRID_SIZE, pos=fullSnake[0].pos
+                                       + headingMap[heading]))
+        else:
+            raise RuntimeError(f"Invalid heading: {heading}")
+        fullSnake.pop()
+        fullSnake[0].lastHeading = heading
         if TESTING:
             print(pygame.key.name(heading))
-            print(f"Pos: {self.pos}")
-        return
+            print(f"Pos: {fullSnake[0].pos}")
+        return fullSnake
 
-    def pickHeading(self, heading):
+    @staticmethod
+    def pickHeading(head, heading):
         """
         Picks the correct heading based on the
         last heading of the snake
         """
-        if heading == pygame.K_LEFT and self.lastHeading == pygame.K_RIGHT:
+        if heading == pygame.K_LEFT and head.lastHeading == pygame.K_RIGHT:
             return pygame.K_RIGHT
-        elif heading == pygame.K_RIGHT and self.lastHeading == pygame.K_LEFT:
+        elif heading == pygame.K_RIGHT and head.lastHeading == pygame.K_LEFT:
             return pygame.K_LEFT
-        elif heading == pygame.K_UP and self.lastHeading == pygame.K_DOWN:
+        elif heading == pygame.K_UP and head.lastHeading == pygame.K_DOWN:
             return pygame.K_DOWN
-        elif heading == pygame.K_DOWN and self.lastHeading == pygame.K_UP:
+        elif heading == pygame.K_DOWN and head.lastHeading == pygame.K_UP:
             return pygame.K_UP
         return heading
 
@@ -109,15 +125,14 @@ def testDraw(screen, frames):
 
 
 def initSnakeBlocks(num_children):
-    snake = []
+    snake = deque()
     snakeHead = Snake(GRID_SIZE, GRID_SIZE, GRID_SIZE, GRID_SIZE, head=True)
     snake.append(snakeHead)
     offset = Vector2(16, 16)
     for i in range(1, num_children + 1):
         parent = snake[i - 1]
         newPart = Snake(GRID_SIZE, GRID_SIZE,
-                        GRID_SIZE, GRID_SIZE, parent=parent)
-        newPart.pos = offset
+                        GRID_SIZE, GRID_SIZE, pos=offset)
         snake.append(newPart)
         parent.child = snake[i]
         offset += Vector2(0, 1)
@@ -130,11 +145,10 @@ def main():
     if TESTING:
         print("Testing mode")
         frameCount = 0
-    gameField = createGameField()
     clock = pygame.time.Clock()
     snake = initSnakeBlocks(3)
     food = Food(0, 0, GRID_SIZE, GRID_SIZE)
-    blocks = snake + [food]
+    blocks = list(snake) + [food]
     if TESTING:
         print(blocks)
     running = True
@@ -151,13 +165,13 @@ def main():
                 heading = event.key
 
         # Game logic
-        for s in snake:
-            if s.head:
-                s.move(heading, gameField)
+        print(pygame.key.name(heading))
+        Snake.move(heading, snake)
 
         # Drawing logic
         screen.fill((255, 255, 255))
         drawGameGrid(screen)
+        blocks = list(snake) + [food]
         drawBlocks(screen, blocks)
         if TESTING:
             frameCount += 1
