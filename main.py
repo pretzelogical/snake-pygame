@@ -30,11 +30,9 @@ class Snake(pygame.Rect):
 
     def move(self, heading, gameField):
         """ Processes movement """
-        self.old_pos = self.pos
         if not self.head:
-            self.pos = self.parent.pos + Vector2(0, 1)
+            self.update()
             return
-        """ We only process keys if we are the head  """
         headingMap = {
             pygame.K_LEFT: Vector2(-1, 0),
             pygame.K_RIGHT: Vector2(1, 0),
@@ -154,7 +152,8 @@ def main():
 
         # Game logic
         for s in snake:
-            s.move(heading, gameField)
+            if s.head:
+                s.move(heading, gameField)
 
         # Drawing logic
         screen.fill((255, 255, 255))
