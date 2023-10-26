@@ -20,11 +20,11 @@ class Snake(pygame.Rect):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.color = COL_BLACK
+        self.lastHeading = pygame.K_UP
         if "pos" in kwargs:
             self.pos = kwargs["pos"]
         else:
             self.pos = Vector2(16, 16)
-        self.lastHeading = pygame.K_UP
 
     @staticmethod
     def move(heading, fullSnake):
@@ -81,7 +81,21 @@ class Food(pygame.Rect):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.color = COL_RED
-        self.pos = Vector2(10, 13)
+        if "pos" in kwargs:
+            self.pos = kwargs["pos"]
+        else:
+            self.pos = Vector2(16, 16)
+
+    @property
+    def pos(self):
+        return self.__pos
+
+    @pos.setter
+    def pos(self, val):
+        """ update screen position based on grid position """
+        self.__pos = val
+        self.x = self.__pos.x * GRID_SIZE
+        self.y = self.__pos.y * GRID_SIZE
 
 
 def createGameField():
@@ -124,6 +138,21 @@ def initSnakeBlocks(num_children):
         offset += Vector2(0, 1)
     return snake
 
+def doCollisions(blocks):
+    positions = [x.pos for x in blocks]
+    # print(positions)
+    for pos in positions:
+        if positions.count(pos) != 1:
+            collided = [x for x in blocks if x.pos == pos]
+            if TESTING:
+                print(f'match {pos}')
+            if "Food" in [x.__class__.__name__ for x in collided]:
+                if TESTING:
+                    print("Food eaten")
+            else:
+                if TESTING:
+                    print("Snake died")
+
 
 def main():
     screen = pygame.display.set_mode((SCREEN_SIZE, SCREEN_SIZE))
@@ -132,7 +161,7 @@ def main():
         print("Testing mode")
         frameCount = 0
     clock = pygame.time.Clock()
-    snake = initSnakeBlocks(3)
+    snake = initSnakeBlocks(5)
     food = Food(0, 0, GRID_SIZE, GRID_SIZE)
     blocks = list(snake) + [food]
     if TESTING:
@@ -150,14 +179,15 @@ def main():
                     print(pygame.key.name(event.key))
                 heading = event.key
 
+        blocks = list(snake) + [food]
+
         # Game logic
-        print(pygame.key.name(heading))
         Snake.move(heading, snake)
+        doCollisions(blocks)
 
         # Drawing logic
         screen.fill((255, 255, 255))
         drawGameGrid(screen)
-        blocks = list(snake) + [food]
         drawBlocks(screen, blocks)
         if TESTING:
             frameCount += 1
@@ -166,7 +196,7 @@ def main():
             testDraw(screen, frameCount)
 
         pygame.display.flip()
-        clock.tick(2)
+        clock.tick(4)
     pygame.quit()
 
 
