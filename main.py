@@ -101,12 +101,6 @@ class Food(pygame.Rect):
         self.y = self.__pos.y * GRID_SIZE
 
 
-def createGameField():
-    """ Returns a cols x rows list"""
-    rows = cols = SCREEN_SIZE // GRID_SIZE
-    return [[None for i in range(cols)] for j in range(rows)]
-
-
 def drawGameGrid(screen):
     for i in range(0, SCREEN_SIZE, GRID_SIZE):
         pygame.draw.line(screen, COL_BLACK, (i, 0), (i, SCREEN_SIZE))
@@ -144,7 +138,6 @@ def initSnakeBlocks(num_children):
 
 def doCollisions(blocks, food, score):
     positions = [x.pos for x in blocks]
-    # print(positions)
     foodEaten = False
     for pos in positions:
         if foodEaten:
