@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import pygame
 from pygame.math import Vector2
+import random
 from sys import argv
 from collections import deque
 pygame.init()
@@ -36,16 +37,17 @@ class Snake(pygame.Rect):
             pygame.K_DOWN: Vector2(0, 1)
                        }
         heading = Snake.pickHeading(fullSnake[0], heading)
-        if heading in headingMap:
-            fullSnake.appendleft(Snake(GRID_SIZE, GRID_SIZE, GRID_SIZE,
-                                       GRID_SIZE, pos=fullSnake[0].pos
-                                       + headingMap[heading]))
-        else:
-            raise RuntimeError(f"Invalid heading: {heading}")
+        if heading not in headingMap.keys():
+            if TESTING:
+                print(f"Invalid heading {pygame.key.name(heading)}")
+            heading = fullSnake[0].lastHeading
+        fullSnake.appendleft(Snake(GRID_SIZE, GRID_SIZE, GRID_SIZE,
+                                   GRID_SIZE, pos=fullSnake[0].pos
+                                   + headingMap[heading]))
         fullSnake.pop()
         fullSnake[0].lastHeading = heading
         if TESTING:
-            print(pygame.key.name(heading))
+            print(pygame.key.name(fullSnake[0].lastHeading))
             print(f"Pos: {fullSnake[0].pos}")
         return fullSnake
 
@@ -84,7 +86,8 @@ class Food(pygame.Rect):
         if "pos" in kwargs:
             self.pos = kwargs["pos"]
         else:
-            self.pos = Vector2(16, 16)
+            self.pos = Vector2(random.randint(0, SCREEN_SIZE // GRID_SIZE),
+                               random.randint(0, SCREEN_SIZE // GRID_SIZE))
 
     @property
     def pos(self):
@@ -163,7 +166,7 @@ def main():
         frameCount = 0
     clock = pygame.time.Clock()
     snake = initSnakeBlocks(2)
-    food = Food(GRID_SIZE, GRID_SIZE, GRID_SIZE, GRID_SIZE, pos=Vector2(2, 2))
+    food = Food(GRID_SIZE, GRID_SIZE, GRID_SIZE, GRID_SIZE)
     blocks = list(snake) + [food]
     if TESTING:
         print(blocks)
