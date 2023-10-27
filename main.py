@@ -86,8 +86,8 @@ class Food(pygame.Rect):
         if "pos" in kwargs:
             self.pos = kwargs["pos"]
         else:
-            self.pos = Vector2(random.randint(0, SCREEN_SIZE // GRID_SIZE),
-                               random.randint(0, SCREEN_SIZE // GRID_SIZE))
+            self.pos = Vector2(random.randint(0, 32),
+                               random.randint(0, 32))
 
     @property
     def pos(self):
@@ -142,10 +142,13 @@ def initSnakeBlocks(num_children):
     return snake
 
 
-def doCollisions(blocks):
+def doCollisions(blocks, food, score):
     positions = [x.pos for x in blocks]
     # print(positions)
+    foodEaten = False
     for pos in positions:
+        if foodEaten:
+            break
         if positions.count(pos) != 1:
             collided = [x for x in blocks if x.pos == pos]
             if TESTING:
@@ -153,9 +156,17 @@ def doCollisions(blocks):
             if "Food" in [x.__class__.__name__ for x in collided]:
                 if TESTING:
                     print("Food eaten")
+                del [x for x in blocks if x.__class__.__name__ == "Food"][0]
+                blocks = [x for x in blocks if x.__class__.__name__ != "Food"]
+                food = Food(GRID_SIZE, GRID_SIZE, GRID_SIZE, GRID_SIZE)
+                blocks.append(food)
+                score += 1
+                foodEaten = True
             else:
                 if TESTING:
                     print("Snake died")
+
+    return blocks, food, score
 
 
 def main():
@@ -165,13 +176,14 @@ def main():
         print("Testing mode")
         frameCount = 0
     clock = pygame.time.Clock()
-    snake = initSnakeBlocks(2)
+    snake = initSnakeBlocks(3)
     food = Food(GRID_SIZE, GRID_SIZE, GRID_SIZE, GRID_SIZE)
     blocks = list(snake) + [food]
     if TESTING:
         print(blocks)
     running = True
     heading = pygame.K_UP
+    score = 0
 
     while running:
         events = pygame.event.get()
@@ -183,11 +195,10 @@ def main():
                     print(pygame.key.name(event.key))
                 heading = event.key
 
-        blocks = list(snake) + [food]
-
         # Game logic
+        blocks = list(snake) + [food]
         Snake.move(heading, snake)
-        doCollisions(blocks)
+        blocks, food, score = doCollisions(blocks, food, score)
 
         # Drawing logic
         screen.fill((255, 255, 255))
