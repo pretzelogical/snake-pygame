@@ -128,7 +128,7 @@ def initSnakeBlocks(num_children):
     snake = deque()
     snakeHead = Snake(GRID_SIZE, GRID_SIZE, GRID_SIZE, GRID_SIZE, head=True)
     snake.append(snakeHead)
-    offset = Vector2(16, 16)
+    offset = Vector2(16, 17)
     for i in range(1, num_children + 1):
         parent = snake[i - 1]
         newPart = Snake(GRID_SIZE, GRID_SIZE,
@@ -137,6 +137,7 @@ def initSnakeBlocks(num_children):
         parent.child = snake[i]
         offset += Vector2(0, 1)
     return snake
+
 
 def doCollisions(blocks):
     positions = [x.pos for x in blocks]
@@ -161,8 +162,8 @@ def main():
         print("Testing mode")
         frameCount = 0
     clock = pygame.time.Clock()
-    snake = initSnakeBlocks(5)
-    food = Food(0, 0, GRID_SIZE, GRID_SIZE)
+    snake = initSnakeBlocks(2)
+    food = Food(GRID_SIZE, GRID_SIZE, GRID_SIZE, GRID_SIZE, pos=Vector2(2, 2))
     blocks = list(snake) + [food]
     if TESTING:
         print(blocks)
