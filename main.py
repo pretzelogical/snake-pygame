@@ -192,8 +192,6 @@ def main():
         drawBlocks(screen, blocks)
         if TESTING:
             frameCount += 1
-            print(snake[1].parent.old_pos)
-            print(snake[1].old_pos)
             testDraw(screen, frameCount)
 
         pygame.display.flip()
