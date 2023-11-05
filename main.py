@@ -13,6 +13,7 @@ TESTING = "test" in argv or "Test" in argv
 # Colors
 COL_BLACK = pygame.Color("black")
 COL_RED = pygame.Color("red")
+COL_DEBUG = pygame.Color("purple")
 # Font
 FONT = pygame.font.SysFont("Cantarell", 32)
 
@@ -118,6 +119,16 @@ class Food(pygame.Rect):
         return blocks, food
 
 
+class Debug(Food):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.color = COL_DEBUG
+        if "pos" in kwargs:
+            self.pos = kwargs.get("pos")
+        else:
+            self.pos = Vector2(0, 0)
+
+
 def drawGameGrid(screen):
     for i in range(0, SCREEN_SIZE, GRID_SIZE):
         pygame.draw.line(screen, COL_BLACK, (i, 0), (i, SCREEN_SIZE))
@@ -149,6 +160,7 @@ def initSnakeBlocks(num_children):
                         GRID_SIZE, GRID_SIZE, pos=offset)
         snake.append(newPart)
         parent.child = snake[i]
+        offset = offset.copy()
         offset += Vector2(0, 1)
     return snake
 
@@ -171,7 +183,8 @@ def doCollisions(blocks, food, score):
                 foodEaten = True
             else:
                 if TESTING:
-                    print("Snake died")
+                    print(f"Snake died at {pos}")
+                    blocks.append(Debug(GRID_SIZE, GRID_SIZE, GRID_SIZE, GRID_SIZE, pos=pos))
 
     return blocks, food, score, foodEaten
 
@@ -185,7 +198,8 @@ def main():
     clock = pygame.time.Clock()
     snake = initSnakeBlocks(3)
     food = Food(GRID_SIZE, GRID_SIZE, GRID_SIZE, GRID_SIZE)
-    blocks = list(snake) + [food]
+    debug = Debug(GRID_SIZE, GRID_SIZE, GRID_SIZE, GRID_SIZE)
+    blocks = list(snake) + [food] + [debug]
     if TESTING:
         print(blocks)
     running = True
@@ -218,6 +232,7 @@ def main():
         if TESTING:
             frameCount += 1
             testDraw(screen, frameCount)
+            print([x.pos for x in blocks])
 
         pygame.display.flip()
         clock.tick(4)
