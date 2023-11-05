@@ -67,6 +67,14 @@ class Snake(pygame.Rect):
             return pygame.K_UP
         return heading
 
+    @staticmethod
+    def newSnake(snake):
+        """ Adds new snake block """
+        pass
+        # snake.append(Snake(GRID_SIZE, GRID_SIZE, GRID_SIZE,
+        #                    GRID_SIZE, pos=snake[0].pos))
+        # return snake
+
     @property
     def pos(self):
         return self.__pos
@@ -99,6 +107,15 @@ class Food(pygame.Rect):
         self.__pos = val
         self.x = self.__pos.x * GRID_SIZE
         self.y = self.__pos.y * GRID_SIZE
+
+    @staticmethod
+    def newFood(blocks):
+        """Deletes food blocks and adds new food"""
+        del [x for x in blocks if x.__class__.__name__ == "Food"][0]
+        blocks = [x for x in blocks if x.__class__.__name__ != "Food"]
+        food = Food(GRID_SIZE, GRID_SIZE, GRID_SIZE, GRID_SIZE)
+        blocks.append(food)
+        return blocks, food
 
 
 def drawGameGrid(screen):
@@ -149,17 +166,14 @@ def doCollisions(blocks, food, score):
             if "Food" in [x.__class__.__name__ for x in collided]:
                 if TESTING:
                     print("Food eaten")
-                del [x for x in blocks if x.__class__.__name__ == "Food"][0]
-                blocks = [x for x in blocks if x.__class__.__name__ != "Food"]
-                food = Food(GRID_SIZE, GRID_SIZE, GRID_SIZE, GRID_SIZE)
-                blocks.append(food)
+                blocks, food = Food.newFood(blocks)
                 score += 1
                 foodEaten = True
             else:
                 if TESTING:
                     print("Snake died")
 
-    return blocks, food, score
+    return blocks, food, score, foodEaten
 
 
 def main():
@@ -177,6 +191,7 @@ def main():
     running = True
     heading = pygame.K_UP
     score = 0
+    foodEaten = False
 
     while running:
         events = pygame.event.get()
@@ -191,7 +206,10 @@ def main():
         # Game logic
         blocks = list(snake) + [food]
         Snake.move(heading, snake)
-        blocks, food, score = doCollisions(blocks, food, score)
+        blocks, food, score, foodEaten = doCollisions(blocks, food, score)
+        # if foodEaten:
+        #     snake = Snake.newSnake(snake)
+        #     foodEaten = False
 
         # Drawing logic
         screen.fill((255, 255, 255))
