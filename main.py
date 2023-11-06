@@ -29,7 +29,7 @@ class Snake(pygame.Rect):
             self.pos = Vector2(16, 16)
 
     @staticmethod
-    def move(heading, fullSnake):
+    def move(heading, fullSnake, foodEaten):
         """ Processes movement """
         headingMap = {
             pygame.K_LEFT: Vector2(-1, 0),
@@ -42,10 +42,22 @@ class Snake(pygame.Rect):
             if TESTING:
                 print(f"Invalid heading {pygame.key.name(heading)}")
             heading = fullSnake[0].lastHeading
+        newPos = fullSnake[0].pos + headingMap[heading]
+        if newPos.x < 0:
+            newPos.x = GRID_SIZE - 1
+        elif newPos.x >= GRID_SIZE:
+            newPos.x = 0
+        if newPos.y < 0:
+            newPos.y = GRID_SIZE - 1
+        elif newPos.y >= GRID_SIZE:
+            newPos.y = 0
+
         fullSnake.appendleft(Snake(GRID_SIZE, GRID_SIZE, GRID_SIZE,
-                                   GRID_SIZE, pos=fullSnake[0].pos
-                                   + headingMap[heading]))
-        fullSnake.pop()
+                                   GRID_SIZE, pos=newPos))
+
+        if not foodEaten:
+            fullSnake.pop()
+
         fullSnake[0].lastHeading = heading
         if TESTING:
             print(pygame.key.name(fullSnake[0].lastHeading))
@@ -95,8 +107,8 @@ class Food(pygame.Rect):
         if "pos" in kwargs:
             self.pos = kwargs["pos"]
         else:
-            self.pos = Vector2(random.randint(0, 32),
-                               random.randint(0, 32))
+            self.pos = Vector2(random.randint(0, GRID_SIZE - 1),
+                               random.randint(0, GRID_SIZE - 1))
 
     @property
     def pos(self):
@@ -219,11 +231,8 @@ def main():
 
         # Game logic
         blocks = list(snake) + [food]
-        Snake.move(heading, snake)
+        Snake.move(heading, snake, foodEaten)
         blocks, food, score, foodEaten = doCollisions(blocks, food, score)
-        # if foodEaten:
-        #     snake = Snake.newSnake(snake)
-        #     foodEaten = False
 
         # Drawing logic
         screen.fill((255, 255, 255))
