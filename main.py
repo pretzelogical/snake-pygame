@@ -14,6 +14,7 @@ TESTING = "test" in argv or "Test" in argv
 COL_BLACK = pygame.Color("black")
 COL_RED = pygame.Color("red")
 COL_DEBUG = pygame.Color("purple")
+COL_SCORE = pygame.Color("#83d9c0")
 # Font
 FONT = pygame.font.SysFont("Cantarell", 32)
 
@@ -153,6 +154,23 @@ def drawBlocks(screen, blocks):
         pygame.draw.rect(screen, block.color, block)
 
 
+def drawScore(screen, score):
+    """ Draws score """
+    scoreText = FONT.render(f"Score: {score}", True, COL_SCORE)
+    scoreTextRect = scoreText.get_rect()
+    scoreTextRect.center = (((SCREEN_SIZE // 3) * 3) - 100,
+                            (SCREEN_SIZE // 4) - 200)
+    screen.blit(scoreText, scoreTextRect)
+
+
+def drawGameOver(screen):
+    """ Draws Game Over """
+    gameOverText = FONT.render("Game Over", True, COL_RED)
+    gameOverTextRect = gameOverText.get_rect()
+    gameOverTextRect.center = (SCREEN_SIZE // 2, SCREEN_SIZE // 2)
+    screen.blit(gameOverText, gameOverTextRect)
+
+
 def testDraw(screen, frames):
     """ Draws testing info """
     frameText = FONT.render(f"{frames}", True, COL_RED)
@@ -180,6 +198,7 @@ def initSnakeBlocks(num_children):
 def doCollisions(blocks, food, score):
     positions = [x.pos for x in blocks]
     foodEaten = False
+    gameOver = False
     for pos in positions:
         if foodEaten:
             break
@@ -198,8 +217,9 @@ def doCollisions(blocks, food, score):
                     print(f"Snake died at {pos}")
                     blocks.append(Debug(GRID_SIZE, GRID_SIZE,
                                         GRID_SIZE, GRID_SIZE, pos=pos))
+                gameOver = True
 
-    return blocks, food, score, foodEaten
+    return blocks, food, score, foodEaten, gameOver
 
 
 def main():
@@ -214,6 +234,7 @@ def main():
     heading = pygame.K_UP
     score = 0
     foodEaten = False
+    gameOver = False
     if TESTING:
         print("Testing mode")
         print(blocks)
@@ -232,12 +253,17 @@ def main():
         # Game logic
         blocks = list(snake) + [food]
         Snake.move(heading, snake, foodEaten)
-        blocks, food, score, foodEaten = doCollisions(blocks, food, score)
+        blocks, food, score, \
+            foodEaten, gameOver = doCollisions(blocks, food, score)
 
         # Drawing logic
         screen.fill((255, 255, 255))
         drawGameGrid(screen)
         drawBlocks(screen, blocks)
+        drawScore(screen, score)
+        if gameOver:
+            drawGameOver(screen)
+            running = False
         if TESTING:
             frameCount += 1
             testDraw(screen, frameCount)
@@ -245,6 +271,10 @@ def main():
 
         pygame.display.flip()
         clock.tick(4)
+
+    if gameOver:
+        pygame.time.wait(2000)
+
     pygame.quit()
 
 
