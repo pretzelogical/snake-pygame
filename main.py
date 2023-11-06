@@ -184,7 +184,8 @@ def doCollisions(blocks, food, score):
             else:
                 if TESTING:
                     print(f"Snake died at {pos}")
-                    blocks.append(Debug(GRID_SIZE, GRID_SIZE, GRID_SIZE, GRID_SIZE, pos=pos))
+                    blocks.append(Debug(GRID_SIZE, GRID_SIZE,
+                                        GRID_SIZE, GRID_SIZE, pos=pos))
 
     return blocks, food, score, foodEaten
 
@@ -192,20 +193,19 @@ def doCollisions(blocks, food, score):
 def main():
     screen = pygame.display.set_mode((SCREEN_SIZE, SCREEN_SIZE))
     pygame.display.set_caption("Snake")
-    if TESTING:
-        print("Testing mode")
-        frameCount = 0
     clock = pygame.time.Clock()
     snake = initSnakeBlocks(3)
     food = Food(GRID_SIZE, GRID_SIZE, GRID_SIZE, GRID_SIZE)
     debug = Debug(GRID_SIZE, GRID_SIZE, GRID_SIZE, GRID_SIZE)
     blocks = list(snake) + [food] + [debug]
-    if TESTING:
-        print(blocks)
     running = True
     heading = pygame.K_UP
     score = 0
     foodEaten = False
+    if TESTING:
+        print("Testing mode")
+        print(blocks)
+        frameCount = 0
 
     while running:
         events = pygame.event.get()
@@ -232,7 +232,7 @@ def main():
         if TESTING:
             frameCount += 1
             testDraw(screen, frameCount)
-            print([x.pos for x in blocks])
+            print([[x.__class__.__name__, x.pos] for x in blocks])
 
         pygame.display.flip()
         clock.tick(4)
